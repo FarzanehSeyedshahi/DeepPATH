@@ -3,3 +3,6 @@ Meso*
 *output*
 .DS_Store
 Lattice_TMA
+DeepPATH_code/.*
+DeepPATH_code/00_preprocessing/.*
+.*
