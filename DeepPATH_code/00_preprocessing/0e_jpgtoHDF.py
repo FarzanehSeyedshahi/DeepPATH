@@ -62,6 +62,8 @@ parser.add_argument("--mode", type=int, default=1,
                         help="0 - path=tiled images in original folder; 1 - path=tiled images sorted in subfolders as labels; 2 - path=sorted images path")
 parser.add_argument("--subset", type=str, default='train',
                         help="in mode 2 only, will only take tiles within a certain subset (train, test or valid; or combined) - in mode 1, it will be appened to the tags name within h5")
+parser.add_argument("--subsetout", type=str, default='None',
+                        help="in mode 2 only; mode of output h5 - same as subset if not specified")
 parser.add_argument("--startS", type=int, default=0,
                         help="First image in the image list to take")
 parser.add_argument("--stepS", type=int, default=1,
@@ -81,11 +83,18 @@ parser.add_argument("--sampleID", type=int, default='14',
 
 
 
+
 args = parser.parse_args()
 
 chunks = args.chunks
 sub_chunks = args.sub_chunks
 top_level = args.input_path
+if args.subsetout == 'None':
+	subsetout = args.subset
+else:
+	subsetout = args.subsetout
+
+print(subsetout)
 
 # chunks = 80
 # sub_chunks = 20
@@ -106,7 +115,7 @@ Images = []
 patterns1 = [f.name for f in os.scandir(top_level) if f.is_dir()]
 patterns1.sort()
 patterns = patterns1
-# print(patterns)
+print('Patterns:\n', patterns)
 if args.mode == 1:
     for pattern in patterns:
         slides = [f.name for f in os.scandir(os.path.join(top_level, pattern)) if f.is_dir()]
@@ -142,11 +151,12 @@ elif args.mode == 0:
 elif args.mode ==2:
     for pattern in patterns:
         if args.subset=='combined':
-            images = glob.glob(os.path.join(top_level, pattern, "*.jpeg"))
+            images = glob.glob(os.path.join(top_level, pattern, "/**/*.npy"), recursive=True)
+            # images = glob.glob(os.path.join(top_level, pattern, "*.npy"))
         else:
             images = glob.glob(os.path.join(top_level, pattern, args.subset + "*.jpeg"))
         Images.append(images)
-        print(pattern)
+        print(images)
     #slides = [f.name for f in os.scandir(os.path.join(top_level, pattern)) if f.is_dir()]
     #print(pattern)
     #for slide in slides:
@@ -184,17 +194,17 @@ print("aaa3 - " + str(len(ImageList)))
 patterns1.append('unknown')
 # create hdf5 dataset
 f = h5py.File(args.output, 'w', driver='mpio', comm=MPI.COMM_WORLD)
-dset = f.create_dataset(args.subset+'_img', (len(ImageList), WIDTH, HEIGHT, 3), dtype='uint8')
-dset2 = f.create_dataset(args.subset+'_patterns', (len(ImageList), ),
+dset = f.create_dataset(subsetout+'_img', (len(ImageList), WIDTH, HEIGHT, 8), dtype='uint8')
+dset2 = f.create_dataset(subsetout+'_patterns', (len(ImageList), ),
                          dtype = 'S37')
-dset3 = f.create_dataset(args.subset+'_slides', (len(ImageList), ),
+dset3 = f.create_dataset(subsetout+'_slides', (len(ImageList), ),
                          dtype = 'S23')
-dset4 = f.create_dataset(args.subset+'_tiles', (len(ImageList), ),
+dset4 = f.create_dataset(subsetout+'_tiles', (len(ImageList), ),
                          dtype = 'S16')
-dset5 = f.create_dataset(args.subset+'_labels', (len(ImageList), ))
-dset6 = f.create_dataset(args.subset+'_hist_subtype', (len(ImageList), ),
+dset5 = f.create_dataset(subsetout+'_labels', (len(ImageList), ))
+dset6 = f.create_dataset(subsetout+'_hist_subtype', (len(ImageList), ),
                          dtype = 'S37')
-dset7 = f.create_dataset(args.subset+'_samples', (len(ImageList), ),
+dset7 = f.create_dataset(subsetout+'_samples', (len(ImageList), ),
                          dtype = 'S23')
 
 
@@ -268,7 +278,7 @@ for j in range(0,sub_chunks):
            slide = img.split("/")[-3]
            tile = img.split("/")[-1]
        if args.mode == 2:
-           pattern = img.split("/")[-2]
+           pattern = img.split("/")[-1].split("_")[0]
            slide_tmp = img.split("/")[-1]
            #slide = slide_tmp.split("_")[1]
            slide = "_".join(slide_tmp.split("_")[1:-2])

@@ -1,4 +1,25 @@
+#!/bin/bash --login
+#
+#SBATCH --job-name=subtype_data_preparation
+#SBATCH --output=/mnt/cephfs/home/users/fshahi/sharedscratch/Projects/DeepPATH/log-files/231122_bioclavis_data_%A.out
+#SBATCH --error=/mnt/cephfs/home/users/fshahi/sharedscratch/Projects/DeepPATH/log-files/231122_bioclavis_data_%A.err
+#SBATCH --nodes=2
+#SBATCH --cpus-per-task=10
+#SBATCH --time=72:00:00
+#SBATCH --mem-per-cpu=30G
+#SBATCH --partition=compute-low-priority
 
-taskset -c 5-36 python 00_preprocessing/0b_tileLoop_deepzoom6.py  -s 224 -e 0 -j 32 -B 40 -P 1.8 -p -1 -o  /mnt/cephfs/home/users/fshahi/Projects/Datasets/Meso_500/tile_outputs_00/2004/ "/mnt/cephfs/home/users/fshahi/sharedscratch/Projects/Datasets/Meso_500/Mesothelioma 2004/**/*.ndpi"
-# python 00_preprocessing/0d_SortTiles.py --SourceFolder=/mnt/cephfs/home/users/fshahi/Projects/Datasets/TCGA_MESO/tile_outputs_00/ --Magnification=1.8  --MagDiffAllowed=1 --SortingOption=10 --PercentTest=15 --PercentValid=15
-# mpirun -n 4 python3 00_preprocessing/0e_jpgtoHDF.py --input_path tile_outputs_00/ --output /mnt/cephfs/home/users/fshahi/Projects/Datasets/TCGA_MESO/hdf5_TCGA_MESO_test.h5 --chunks 4 --sub_chunks 8 --wSize 224 --mode 2 --subset='test' --mag 1.8
+export TZ=Europe/London
+date
+hostname
+
+source ~/.bashrc
+source "/mnt/cephfs/home/users/fshahi/miniconda3/etc/profile.d/conda.sh"
+# conda info --envs
+conda activate h5
+
+mpirun -n 1 python3 00_preprocessing/0f_npy_to_hdf.py --input_path /mnt/cephfs/home/users/krakovic/sharedscratch/datasets/bioclavis/array_tiles_256px_sorted/ --output /mnt/cephfs/home/users/fshahi/Projects/Datasets/bioclavis/mif/patches_h256_w256/hdf5_bioclavis_mif_npy.h5 --chunks 1 --sub_chunks 1024 --wSize 256 --mode 2 --mag 20 --subset='combined'
+
+
+date
+exit 0
