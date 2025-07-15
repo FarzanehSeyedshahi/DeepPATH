@@ -33,4 +33,4 @@ while IFS= read -r line; do
     full_path=$(echo "/mnt/cephfs/home/users/fshahi/data/M42/nas/Nanozoomer active projects/JLQ E1/Mesothelioma/$name_pth")
     cp "$full_path" /mnt/cephfs/home/users/fshahi/Projects/Datasets/large_ndpis/
     echo $full_path
-done < not_tiled_1699254443.3482323.txt
+done < /mnt/cephfs/home/users/fshahi/data/FSHAHI/2004/not_tiled_1699076555.8588185.txt
