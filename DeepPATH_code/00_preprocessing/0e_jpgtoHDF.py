@@ -74,9 +74,9 @@ parser.add_argument("--mag", type=float, default=2.016,
                         help="magnification to use (mode 0 and 1 only)")
 parser.add_argument("--label", type=str, default='',
                         help="label to use (mode 0 only); either a string or a filepath with labels")
-parser.add_argument("--slideID", type=int, default='23',
+parser.add_argument("--slideID", type=int, default='80',
                         help="number of characters to use for the slide ID")
-parser.add_argument("--sampleID", type=int, default='14',
+parser.add_argument("--sampleID", type=int, default='80',
                         help="number of characters to use for the sample (or patient) ID")
 
 
@@ -94,7 +94,6 @@ if args.subsetout == 'None':
 else:
 	subsetout = args.subsetout
 
-print(subsetout)
 
 # chunks = 80
 # sub_chunks = 20
@@ -115,12 +114,12 @@ Images = []
 patterns1 = [f.name for f in os.scandir(top_level) if f.is_dir()]
 patterns1.sort()
 patterns = patterns1
-print('Patterns:\n', patterns)
+# print('Patterns:\n', patterns)
 if args.mode == 1:
     for pattern in patterns:
         slides = [f.name for f in os.scandir(os.path.join(top_level, pattern)) if f.is_dir()]
         # slides = [f.name for f in os.scandir(os.path.join(top_level, pattern)) if f.is_file()]
-        print(pattern)
+        # print(pattern)
         for slide in slides:
             images = glob.glob(os.path.join(top_level, pattern, slide, str(args.mag) + "/*.jpeg"))
             Images.append(images)
@@ -156,7 +155,7 @@ elif args.mode ==2:
         else:
             images = glob.glob(os.path.join(top_level, pattern, args.subset + "*.jpeg"))
         Images.append(images)
-        print(images)
+        print("images:",Images)
     #slides = [f.name for f in os.scandir(os.path.join(top_level, pattern)) if f.is_dir()]
     #print(pattern)
     #for slide in slides:
@@ -194,18 +193,19 @@ print("aaa3 - " + str(len(ImageList)))
 patterns1.append('unknown')
 # create hdf5 dataset
 f = h5py.File(args.output, 'w', driver='mpio', comm=MPI.COMM_WORLD)
-dset = f.create_dataset(subsetout+'_img', (len(ImageList), WIDTH, HEIGHT, 8), dtype='uint8')
+# dset = f.create_dataset(subsetout+'_img', (len(ImageList), WIDTH, HEIGHT, 8), dtype='uint8') # for MIF
+dset = f.create_dataset(subsetout+'_img', (len(ImageList), WIDTH, HEIGHT, 3), dtype='uint8') # for RGB
 dset2 = f.create_dataset(subsetout+'_patterns', (len(ImageList), ),
                          dtype = 'S37')
 dset3 = f.create_dataset(subsetout+'_slides', (len(ImageList), ),
-                         dtype = 'S23')
+                         dtype = 'S37')
 dset4 = f.create_dataset(subsetout+'_tiles', (len(ImageList), ),
-                         dtype = 'S16')
+                         dtype = 'S20')
 dset5 = f.create_dataset(subsetout+'_labels', (len(ImageList), ))
 dset6 = f.create_dataset(subsetout+'_hist_subtype', (len(ImageList), ),
-                         dtype = 'S37')
+                         dtype = 'S30')
 dset7 = f.create_dataset(subsetout+'_samples', (len(ImageList), ),
-                         dtype = 'S23')
+                         dtype = 'S37')
 
 
 # size of the chunks
@@ -258,8 +258,7 @@ for j in range(0,sub_chunks):
    loadedLabels = []
    loadedSamples = []
    for i, img in enumerate(ImageList[sub_start:sub_end]):
-       #print(img)
-       #print(os.stat(img).st_size)
+
        image = cv2.imread(img)
        if args.mode == 0:
            slide = img.split("/")[-3]
@@ -280,18 +279,21 @@ for j in range(0,sub_chunks):
        if args.mode == 2:
            pattern = img.split("/")[-1].split("_")[0]
            slide_tmp = img.split("/")[-1]
-           #slide = slide_tmp.split("_")[1]
            slide = "_".join(slide_tmp.split("_")[1:-2])
+        #    slide = slide_tmp.split("_")[1]
+        #    slide = "_".join(slide_tmp.split("_")[1:])
+        #    b = slide_tmp.split("_")[1:] #for LATTICETMA
+        #    slide = b[0]+"" +b[1]+"_" +b[4] #for LATTICETMA
            tile = "_".join(slide_tmp.split("_")[-2:])
        side = slide + "_" + pattern
        #pattern = img.split("/")[9]
        #slide = img.split("/")[10]
        #print("shape:")
        #print(image.shape[0], WIDTH, image.shape[1], HEIGHT)
-       try:
-           print(img, image.shape[0], pattern)
-       except:
-           print("error 1:" + img)
+    #    try:
+        #    print(img, image.shape[0], pattern)
+    #    except:
+        #    print("error 1:" + img)
            # print(ImageList[sub_start:sub_end])
        if max(image.shape[0]/float(WIDTH), image.shape[1]/float(HEIGHT)) > 1:  
            nfac = 1./max(image.shape[0]/float(WIDTH), image.shape[1]/float(HEIGHT))
@@ -305,7 +307,7 @@ for j in range(0,sub_chunks):
            image =image[:,:HEIGHT,:]
        image = np.uint8(image)
        sample = slide[:args.sampleID]
-       slide = slide[:args.slideID]
+    #    slide = slide[:args.slideID]
        #print("shape:")
        #print(image.shape[0], WIDTH, image.shape[1], HEIGHT)
        if image.shape[0] == WIDTH and image.shape[1] == HEIGHT:
