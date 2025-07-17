@@ -1578,7 +1578,7 @@ if __name__ == '__main__':
           continue
         # try:
         if True:
-	  import time
+          import time
           time.sleep(15)
           DeepZoomStaticTiler(filename, output, opts.format, opts.tile_size, opts.overlap, opts.limit_bounds, opts.quality, opts.workers, opts.with_viewer, opts.Bkg, opts.basenameJPG, opts.xmlfile, opts.mask_type, opts.ROIpc, '', ImgExtension, opts.SaveMasks, opts.Mag, opts.normalize, opts.Fieldxml, opts.pixelsize, opts.pixelsizerange, Adj_WindowSize, resize_ratio, Best_level, Adj_overlap, opts.Std).run()
         #except Exception as e:
