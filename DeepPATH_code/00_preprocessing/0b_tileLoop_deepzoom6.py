@@ -1083,7 +1083,7 @@ class DeepZoomStaticTiler(object):
         # try:
         print("start tiler")
         import time
-        time.sleep(3)
+        time.sleep(10)
        	tiler.run()
         print("end tiler")
         # except:
