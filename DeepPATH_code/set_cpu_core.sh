@@ -27,4 +27,9 @@
 # done
 
  
-taskset -c 225-255 python 00_preprocessing/0b_tileLoop_deepzoom6.py  -s 224 -e 0 -j 32 -B 40 -P 1.8 -p -1 -o  /raid/users/farzaneh/DeepPATH/DeepPATH_code/tile_outputs_00/ "/raid/users/farzaneh/DeepPATH/**/*.ndpi"
+# taskset -c 225-255 python 00_preprocessing/0b_tileLoop_deepzoom6.py  -s 224 -e 0 -j 32 -B 40 -P 1.8 -p -1 -o  /raid/users/farzaneh/DeepPATH/DeepPATH_code/tile_outputs_00/ "/raid/users/farzaneh/DeepPATH/**/*.ndpi"
+
+until python 00_preprocessing/0b_tileLoop_deepzoom6.py -s 224 -e 0 -j 32 -B 40 -P 1.8 -p -1 -o /home/alsadats@clb.loc/Datasets/tiles/ "/home/alsadats@clb.loc/Dataset/Stage-Meso-IA/*/*.svs"; do
+    echo "Process failed, retrying in 10 seconds..."
+    sleep 10
+done
